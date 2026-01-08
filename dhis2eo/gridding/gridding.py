@@ -44,14 +44,20 @@ def linear_grid(dataValues):
             continue  # not enough points to interpolate
 
         grid_linear = griddata(
+        (lons, lats),
+        values,
+        (lon_mesh, lat_mesh),
+        method="linear"
+        )
+
+        grid_nearest = griddata(
             (lons, lats),
             values,
             (lon_mesh, lat_mesh),
-            method="linear"
-        )   
-        
+            method="nearest"
+        )
 
-        grid_linear[np.isnan(grid_linear)] = grid_linear[np.isnan(grid_linear)]
+        grid_linear[np.isnan(grid_linear)] = grid_nearest[np.isnan(grid_linear)]
 
         data_3d[t, :, :] = grid_linear
 
@@ -65,7 +71,42 @@ def linear_grid(dataValues):
             "lon": lon_grid
         }
     )
+    
+    ds["cases"].attrs = {
+    "long_name": "Monthly reported health facility cases",
+    "units": "count",
+    "cell_methods": "time: sum",
+    "grid_mapping": "crs"
+    }
+
+    ds["lat"].attrs = {
+    "standard_name": "latitude",
+    "units": "degrees_north",
+    "axis": "Y"
+    }
+
+    ds["lon"].attrs = {
+        "standard_name": "longitude",
+        "units": "degrees_east",
+        "axis": "X"
+    }
+
+    ds["time"].attrs = {
+        "standard_name": "time"
+    }
+
+    ds["crs"] = xr.DataArray(
+    0,
+    attrs={
+        "grid_mapping_name": "latitude_longitude",
+        "epsg_code": "EPSG:4326",
+        "semi_major_axis": 6378137.0,
+        "inverse_flattening": 298.257223563
+    }
+    )
+
     return ds
+
 
 
 
