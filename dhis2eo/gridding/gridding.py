@@ -7,7 +7,6 @@ import xarray as xr
 from preparedata import prepare_data
 
 #You can pass multiple periods separated by a ;
-
 # dataValues = pd.read_csv(StringIO(data))
 #This function takes a pandas Dataframe type parameter
 def linear_grid(dataValues):
@@ -67,6 +66,8 @@ def linear_grid(dataValues):
         }
     )
     return ds
+
+
 
 
 
