@@ -6,12 +6,9 @@ import xarray as xr
 
 from preparedata import prepare_data
 
-#use a single period to create a single layer
-# dataValues = pd.read_csv(StringIO(data))
-#This function takes a pandas Dataframe type parameter
 def linear_grid(dataValues):
-    reso = 0.1
-    buff = 0.1
+    reso = 0.0083
+    buff = 0.0083
 
     lon_min,lon_max = dataValues.lon.min(),dataValues.lon.max()
     lat_min,lat_max = dataValues.lat.min(),dataValues.lat.max()
@@ -41,7 +38,7 @@ def linear_grid(dataValues):
         lats, lons, values = lats[mask], lons[mask], values[mask]
 
         if len(values) < 3:
-            continue  # not enough points to interpolate
+            continue 
 
         grid_linear = griddata(
         (lons, lats),
