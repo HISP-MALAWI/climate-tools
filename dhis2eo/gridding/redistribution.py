@@ -1,44 +1,51 @@
 from io import StringIO
 import pandas as pd
-from plot import plotData
-from rasterise import rasterize_population
-from masking import mask
-from gridding import linear_grid
-from preparedata import prepare_data
+import xarray as xr
 import geopandas as gpd
-import rioxarray as rxr
-from bayersianGrid import bayesian_grid
+from preparedata import prepare_data
+from gridding import linear_grid
+from masking import mask
+from plot import plotData
+from dhis2eo.data.worldpop import pop_total
 
-data = prepare_data(base_url="https://dhis2.health.gov.mw",username="yambansokausiwa",password="Bscinf-07",dx='jPEcKbn7jmh',pe="202501",ou_level="4") #getting data valaue to interpolate
-dataValues = pd.read_csv(StringIO(data))
-print(dataValues)
-lin = linear_grid(dataValues) # linear interpolation
-grd = mask(lin,r"C:\Users\ShnkMn\Documents\CMS\climate-tools\docs\data\Districts.shp") #  masking takes the dataset and the path to the map layer you want to mask with
-pop = gpd.read_file(r"C:\Users\ShnkMn\Documents\CMS\climate-tools\docs\data\pop.gpkg")
-pop = pop.to_crs(epsg=4326)
+# 1. DATA PREPARATION
+# Fetch disease data from DHIS2
+data_str = prepare_data(
+    base_url="https://dhis2.health.gov.mw",
+    username="yambansokausiwa",
+    password="Bscinf-07",
+    dx='jPEcKbn7jmh',
+    pe="202501",
+    ou_level="4"
+)
+dataValues = pd.read_csv(StringIO(data_str))
 
-overlay = gpd.read_file(r"C:\Users\ShnkMn\Documents\CMS\climate-tools\docs\data\Districts.shp")
-overlay = overlay.to_crs(epsg=4326)
+lin = linear_grid(dataValues)
 
-rst = rasterize_population(pop,lin,pop_col="population") # rasterize the population dataset
+country_code = 'MWI'
+pop_ds = pop_total.get("2025", country_code)
 
-rst = rst.reindex_like(lin,method=None)
-spatial_mask = lin.isel(time=0).notnull()
-rst_masked = rst.where(spatial_mask)
+pop_da = pop_ds['total_pop'].rename({'x': 'lon', 'y': 'lat'})
 
-pop_total = rst_masked.sum(dim=("lat", "lon"))
-weights = rst_masked / pop_total
+rst = pop_da.reindex_like(lin, method="nearest")
 
-pop_total = rst.sum(dim=("lat", "lon"))
-weights = rst / pop_total
+total_pop_sum = rst.sum(dim=("lat", "lon"))
+weights = rst / total_pop_sum
 
-total_cases = lin.isel(time=0).sum(dim=("lat", "lon"))
+total_cases_val = lin['cases'].isel(time=0).sum(dim=("lat", "lon"))
 
-cases = weights * total_cases
+redistributed_da = weights * total_cases_val
 
-msk = mask(cases,r"C:\Users\ShnkMn\Documents\CMS\climate-tools\docs\data\Districts.shp")
-# print(msk)
-# print(lin)
-print(msk)
-plotData(grd,overlay)
-plotData(msk,overlay) # Plot data values
+cases_ds = redistributed_da.to_dataset(name="cases")
+
+districts_path = r"C:\Users\ShnkMn\Documents\CMS\climate-tools\docs\data\Districts.shp"
+overlay = gpd.read_file(districts_path).to_crs(epsg=4326)
+print(cases_ds)
+grd_masked = mask(lin, districts_path)
+msk_redistributed = mask(cases_ds, districts_path)
+
+print("Masked Redistributed Data:")
+print(msk_redistributed)
+
+plotData(grd_masked, overlay)          # Original Linear Interpolation
+plotData(msk_redistributed.squeeze(), overlay)    # Population-Weighted Redistribution
