@@ -25,6 +25,8 @@ def plotData(data, overlay, cmap="Reds"):
         data2d["lon"],
         data2d["lat"],
         data2d.values,
+        vmin=100,
+        vmax=30000,
         cmap=cmap,
         shading="auto",
         transform=ccrs.PlateCarree()
