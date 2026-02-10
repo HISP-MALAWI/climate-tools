@@ -6,7 +6,7 @@ import xarray as xr
 
 from preparedata import prepare_data
 
-#You can pass multiple periods separated by a ;
+#use a single period to create a single layer
 # dataValues = pd.read_csv(StringIO(data))
 #This function takes a pandas Dataframe type parameter
 def linear_grid(dataValues):
