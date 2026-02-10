@@ -30,7 +30,6 @@ def rasterize_population(pop_gdf, cases_da, pop_col="population"):
         name="population"
     )
 
-    # 5️⃣ Register spatial dims and CRS
     pop_da = pop_da.rio.set_spatial_dims(x_dim="lon", y_dim="lat")
     pop_da = pop_da.rio.write_crs(cases_da.rio.crs)
 
