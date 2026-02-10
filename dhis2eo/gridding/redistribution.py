@@ -11,9 +11,9 @@ from dhis2eo.data.worldpop import pop_total
 # 1. DATA PREPARATION
 # Fetch disease data from DHIS2
 data_str = prepare_data(
-    base_url="https://dhis2.health.gov.mw",
-    username="yambansokausiwa",
-    password="Bscinf-07",
+    base_url="some url",
+    username="username",
+    password="password",
     dx='jPEcKbn7jmh',
     pe="202501",
     ou_level="4"
