@@ -24,7 +24,7 @@ def prepare_data(base_url, username, password, dx, ou_level, pe):
     cfg = ClientSettings(
         base_url=base_url,
         username=username,
-        password=password
+        password=password,
     )
     client = DHIS2Client(settings=cfg)
 
