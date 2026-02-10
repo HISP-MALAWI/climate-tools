@@ -20,7 +20,6 @@ def prepare_data(base_url, username, password, dx, ou_level, pe):
         str: CSV output as string
     """
 
-    # --- Configure DHIS2 client ---
     cfg = ClientSettings(
         base_url=base_url,
         username=username,
@@ -28,28 +27,22 @@ def prepare_data(base_url, username, password, dx, ou_level, pe):
     )
     client = DHIS2Client(settings=cfg)
 
-    # --- Fetch org units GeoJSON ---
     org = client.get_org_units_geojson_by_level(ou_level)
 
-    # --- Fetch analytics for the given dx and period ---
     ana = client.get_analytics(
         table="analytics",
         dimension=[f"dx:{dx}", f"ou:LEVEL-{ou_level}", f"pe:{pe}"]
     )
 
-    # --- Build header-based records ---
     headers = [h["name"] for h in ana["headers"]]
     records = [dict(zip(headers, row)) for row in ana.get("rows", [])]
 
-    # --- Build a lookup map for quick access ---
     ana_map = {r["ou"]: {"value": r["value"], "pe": r["pe"]} for r in records}
 
-    # --- Prepare CSV output ---
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(['facility', 'id', 'lat', 'lon', 'year', 'month', 'cases'])
 
-    # --- Merge analytics with org units ---
     for ou in org.get("features", []):
         uid = ou.get('id')
         props = ou.get('properties', {})
