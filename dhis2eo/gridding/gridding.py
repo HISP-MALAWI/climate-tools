@@ -23,7 +23,8 @@ def linear_grid(dataValues):
 
     data_3d = np.full(
         (len(times), len(lat_grid), len(lon_grid)),
-        np.nan
+        np.nan,
+        dtype=np.float32
     )
 
     for t, time_val in enumerate(times):
@@ -45,14 +46,14 @@ def linear_grid(dataValues):
         values,
         (lon_mesh, lat_mesh),
         method="linear"
-        )
+        ).astype(np.float32)
 
         grid_nearest = griddata(
             (lons, lats),
             values,
             (lon_mesh, lat_mesh),
             method="nearest"
-        )
+        ).astype(np.float32)
 
         grid_linear[np.isnan(grid_linear)] = grid_nearest[np.isnan(grid_linear)]
 
