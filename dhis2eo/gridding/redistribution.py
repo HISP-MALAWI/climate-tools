@@ -11,9 +11,9 @@ from dhis2eo.data.worldpop import pop_total
 # 1. DATA PREPARATION
 # Fetch disease data from DHIS2
 data_str = prepare_data(
-    base_url="some url",
-    username="username",
-    password="password",
+    base_url="https://dhis2.health.gov.mw/",
+    username="yambansokausiwa",
+    password="Bscinf-07",
     dx='jPEcKbn7jmh',
     pe="202501",
     ou_level="4"
@@ -38,7 +38,7 @@ redistributed_da = weights * total_cases_val
 
 cases_ds = redistributed_da.to_dataset(name="cases")
 
-districts_path = r"C:\Users\ShnkMn\Documents\CMS\climate-tools\docs\data\Districts.shp"
+districts_path = r"C:\Users\ShnkMn\Documents\CMS\climate-tools\docs\data\Districts.shp"  # Path to district shapefile
 overlay = gpd.read_file(districts_path).to_crs(epsg=4326)
 print(cases_ds)
 grd_masked = mask(lin, districts_path)
