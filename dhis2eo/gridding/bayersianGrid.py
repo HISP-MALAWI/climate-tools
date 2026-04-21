@@ -18,7 +18,7 @@ def bayesian_grid(dataValues, reso=0.0083, buff=0.0083):
 
     dataValues = dataValues.copy()
     dataValues['cases'] = dataValues['cases'].fillna(0).astype(float)
-    dataValues['population'] = dataValues['population'].fillna(1).replace(0, 1).astype(float)
+    dataValues['population'] = dataValues['population'].where(dataValues['population'] > 0, 1).astype(float)
     
     dataValues["time"] = pd.PeriodIndex.from_fields(
         year=dataValues.year,
@@ -36,6 +36,7 @@ def bayesian_grid(dataValues, reso=0.0083, buff=0.0083):
 
     robjects.r("""
     library(INLA)
+    inla.setOption(num.threads = 2)
 
     run_spde <- function(df, lon_grid, lat_grid) {
       df$time <- as.factor(df$time)
@@ -95,7 +96,7 @@ def bayesian_grid(dataValues, reso=0.0083, buff=0.0083):
     result <- run_spde(df, lon_grid, lat_grid)
     """)
 
-    data_3d = np.array(robjects.globalenv["result"])
+    data_3d = np.array(robjects.globalenv["result"]).astype(np.float32)
 
     ds = xr.Dataset(
         data_vars={
