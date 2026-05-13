@@ -13,6 +13,7 @@ dependencies = [
     "earthkit-transforms>=0.5",
     "earthkit-plots",
     "dhis2-client @ git+https://github.com/dhis2/dhis2-python-client.git",
+    "python-dotenv>=1.2.2",
 ]
 
 [project.scripts]

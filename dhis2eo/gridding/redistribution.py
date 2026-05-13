@@ -1,19 +1,24 @@
+import os
 from io import StringIO
+from pathlib import Path
 import pandas as pd
 import xarray as xr
 import geopandas as gpd
+from dotenv import load_dotenv
 from preparedata import prepare_data
 from gridding import linear_grid
 from masking import mask
 from plot import plotData
 from dhis2eo.data.worldpop import pop_total
 
+load_dotenv(Path(__file__).parent / ".env")
+
 # 1. DATA PREPARATION
 # Fetch disease data from DHIS2
 data_str = prepare_data(
     base_url="https://dhis2.health.gov.mw/",
     username="yambansokausiwa",
-    password="Bscinf-07",
+    password=os.environ["DHIS2_PASSWORD"],
     dx='jPEcKbn7jmh',
     pe="202501",
     ou_level="4"
