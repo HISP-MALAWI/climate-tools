@@ -1,29 +1,53 @@
 from io import StringIO
+import os
 import pandas as pd
 import xarray as xr
 import geopandas as gpd
+from dotenv import load_dotenv
 from preparedata import prepare_data
 from gridding import linear_grid
 from masking import mask
 from plot import plotData
 from dhis2eo.data.worldpop import pop_total
+from prepareDatawithPop import prepare_data_with_pop
+from bayersianGrid import bayesian_grid
 
+# Load environment variables from .env file
+load_dotenv()
+
+# Get the project root directory
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Get configuration from environment variables
+DHIS2_BASE_URL = os.getenv('DHIS2_BASE_URL')
+DHIS2_USERNAME = os.getenv('DHIS2_USERNAME')
+DHIS2_PASSWORD = os.getenv('DHIS2_PASSWORD')
+DHIS2_DX = os.getenv('DHIS2_DX')
+DHIS2_PERIOD = os.getenv('DHIS2_PERIOD')
+DHIS2_OU_LEVEL = os.getenv('DHIS2_OU_LEVEL')
+WORLDPOP_YEAR = os.getenv('WORLDPOP_YEAR')
+WORLDPOP_COUNTRY_CODE = os.getenv('WORLDPOP_COUNTRY_CODE')
+SHAPEFILE_PATH = os.path.join(PROJECT_ROOT, os.getenv('SHAPEFILE_PATH', 'docs/data/Districts.shp'))
 # 1. DATA PREPARATION
 # Fetch disease data from DHIS2
 data_str = prepare_data(
-    base_url="https://dhis2.health.gov.mw/",
-    username="yambansokausiwa",
-    password="Bscinf-07",
-    dx='jPEcKbn7jmh',
-    pe="202501",
-    ou_level="4"
+    base_url=DHIS2_BASE_URL,
+    username=DHIS2_USERNAME,
+    password=DHIS2_PASSWORD,
+    dx=DHIS2_DX,
+    pe=DHIS2_PERIOD,
+    ou_level=DHIS2_OU_LEVEL
 )
 dataValues = pd.read_csv(StringIO(data_str))
 
-lin = linear_grid(dataValues)
+# Get population data
+pop_ds = pop_total.get(WORLDPOP_YEAR, WORLDPOP_COUNTRY_CODE)
 
-country_code = 'MWI'
-pop_ds = pop_total.get("2025", country_code)
+# Prepare data with population
+dataValues = prepare_data_with_pop(dataValues, pop_ds)
+
+# Run Bayesian gridding
+lin = bayesian_grid(dataValues)
 
 pop_da = pop_ds['total_pop'].rename({'x': 'lon', 'y': 'lat'})
 
@@ -38,11 +62,11 @@ redistributed_da = weights * total_cases_val
 
 cases_ds = redistributed_da.to_dataset(name="cases")
 
-districts_path = r"C:\Users\ShnkMn\Documents\CMS\climate-tools\docs\data\Districts.shp"  # Path to district shapefile
-overlay = gpd.read_file(districts_path).to_crs(epsg=4326)
+# Load district shapefile
+overlay = gpd.read_file(SHAPEFILE_PATH).to_crs(epsg=4326)
 print(cases_ds)
-grd_masked = mask(lin, districts_path)
-msk_redistributed = mask(cases_ds, districts_path)
+grd_masked = mask(lin, SHAPEFILE_PATH)
+msk_redistributed = mask(cases_ds, SHAPEFILE_PATH)
 
 print("Masked Redistributed Data:")
 print(msk_redistributed)
