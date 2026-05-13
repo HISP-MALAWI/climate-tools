@@ -15,7 +15,10 @@ tests/test_outputs/
 .venv/
 .env/
 .env
+<<<<<<< HEAD
 
+=======
+>>>>>>> b522fcf67ac369dce5c40b15ae6e4c974515a29f
 docs/src/data/pm_final_srilanka_linearp.nc
 docs/src/data/sri-lanka-provinces.geojson
 docs/data/local/

@@ -1,5 +1,10 @@
-from io import StringIO
 import os
+from io import StringIO
+<<<<<<< HEAD
+import os
+=======
+from pathlib import Path
+>>>>>>> b522fcf67ac369dce5c40b15ae6e4c974515a29f
 import pandas as pd
 import xarray as xr
 import geopandas as gpd
@@ -12,6 +17,7 @@ from dhis2eo.data.worldpop import pop_total
 from prepareDatawithPop import prepare_data_with_pop
 from bayersianGrid import bayesian_grid
 
+<<<<<<< HEAD
 # Load environment variables from .env file
 load_dotenv()
 
@@ -37,6 +43,19 @@ data_str = prepare_data(
     dx=DHIS2_DX,
     pe=DHIS2_PERIOD,
     ou_level=DHIS2_OU_LEVEL
+=======
+load_dotenv(Path(__file__).parent / ".env")
+
+# 1. DATA PREPARATION
+# Fetch disease data from DHIS2
+data_str = prepare_data(
+    base_url="https://dhis2.health.gov.mw/",
+    username="yambansokausiwa",
+    password=os.environ["DHIS2_PASSWORD"],
+    dx='jPEcKbn7jmh',
+    pe="202501",
+    ou_level="4"
+>>>>>>> b522fcf67ac369dce5c40b15ae6e4c974515a29f
 )
 dataValues = pd.read_csv(StringIO(data_str))
 
