@@ -34,6 +34,18 @@ def bayesian_grid(dataValues, reso=0.0083, buff=0.0083):
     robjects.globalenv["lon_grid"] = robjects.FloatVector(lon_grid)
     robjects.globalenv["lat_grid"] = robjects.FloatVector(lat_grid)
 
+    # Extract data for inspection
+    print("Data being passed to R:")
+    print(dataValues.head())
+    print(f"Lon grid shape: {lon_grid.shape}")
+    print(f"Lat grid shape: {lat_grid.shape}")
+    print(f"Columns: {dataValues.columns.tolist()}")
+
+    dataValues.to_csv('data_for_r.csv', index=False, header=True)
+    np.save('lon_grid.npy', lon_grid)
+    np.save('lat_grid.npy', lat_grid)
+    print("Data saved to data_for_r.csv with headers")
+
     robjects.r("""
     library(INLA)
     inla.setOption(num.threads = 2)
@@ -96,7 +108,10 @@ def bayesian_grid(dataValues, reso=0.0083, buff=0.0083):
     result <- run_spde(df, lon_grid, lat_grid)
     """)
 
-    data_3d = np.array(robjects.globalenv["result"]).astype(np.float32)
+    # Convert result and handle overflow by clipping extreme values
+    data_3d = np.array(robjects.globalenv["result"])
+    # Clip values to float32 range to avoid overflow
+    data_3d = np.clip(data_3d, np.finfo(np.float32).min, np.finfo(np.float32).max).astype(np.float32)
 
     ds = xr.Dataset(
         data_vars={
